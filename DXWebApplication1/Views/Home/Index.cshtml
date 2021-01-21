@@ -1,0 +1,45 @@
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<script>
+    var isUpdateLocked = false;
+    var isSavingPostponed = false;
+
+    function onSaveDocumentClick(s, e) {
+        if (isUpdateLocked)
+            isSavingPostponed = true;
+        else
+            RichEditTest.PerformCallback({ operation: "Save Document" });
+    }
+
+    function onBeginSynchronization(s, e) {
+        isUpdateLocked = true;
+    }
+
+    function onEndSynchronization(s, e) {
+        isUpdateLocked = false;
+        if (isSavingPostponed) {
+            window.setTimeout(function () {
+                isSavingPostponed = false;
+                RichEditTest.PerformCallback({ operation: "Save Document" });
+            }, 0);
+        }
+    }
+</script>
+
+@using(Html.BeginForm("ExportFile", "Home")) {
+    @Html.Action("RichEditPartial")
+    @Html.DevExpress().Button(s => {
+        s.Name = "Save";
+        s.Text = "Save Document";
+        s.UseSubmitBehavior = false;
+        s.ClientSideEvents.Click = "onSaveDocumentClick";
+    }).GetHtml()
+    @Html.DevExpress().Button(s => {
+        s.Name = "Export";
+        s.Text = "Export to PDF";
+        s.Images.Image.IconID = "export_exporttopdf_16x16";
+        s.UseSubmitBehavior = true;
+    }).GetHtml()
+}
